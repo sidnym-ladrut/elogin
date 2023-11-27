@@ -14,15 +14,12 @@ workflows.
 cd ./desk
 rm -rI full/
 find bare -type f | while read f; do { d=$(dirname "$f" | sed "s/^bare/full/"); mkdir -p "$d"; ln -sr -t "$d" "$f"; }; done
-mkdir -p full/lib/
+mkdir -p full/lib/ full/mar full/sur
 ln -sr ../LICENSE.txt full/license.txt
-git clone -b 412k-rc2 --depth 1 https://github.com/urbit/urbit.git urb
-cp urb/pkg/arvo/mar/{bill*,hoon*,json*,kelvin*,mime*,noun*,ship*,txt*} full/mar/
-cp urb/pkg/arvo/lib/{agentio*,dbug*,default-agent*,skeleton*} full/lib/
-git clone -b v1.16.0 --depth 1 https://github.com/tloncorp/landscape.git lan
-cp lan/desk/mar/docket* full/mar/
-cp lan/desk/lib/docket* full/lib/
-cp lan/desk/sur/docket* full/sur/
+git clone --depth 1 https://github.com/urbit/yard yar
+cp yar/desk/lib/{dbug*,default-agent*,skeleton*,schooner*,server*,docket*} full/lib/
+cp yar/desk/mar/{bill*,docket*,hoon*,json*,kelvin*,mime*,noun*,ship*,txt*} full/mar/
+cp yar/desk/sur/docket* full/sur/
 ```
 
 ### Deploy Full Desk ###

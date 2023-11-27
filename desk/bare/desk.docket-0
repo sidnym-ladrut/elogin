@@ -1,9 +1,9 @@
-:~  title+'squad'
+:~  title+'elogin'
     info+'A minimal demonstration of EAuth login in Urbit'
     color+0x11.1111
     version+[0 0 1]
     website+'https://docs.urbit.org/courses/urbit-academy/ca'
     license+'MIT'
-    base+'squad'
-    site+/squad
+    base+'elogin'
+    site+/apps/elogin
 ==

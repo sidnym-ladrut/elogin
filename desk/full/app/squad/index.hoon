@@ -1,1 +1,0 @@
-../../../bare/app/squad/index.hoon

@@ -1,6 +1,6 @@
-/-  *squad
+/-  *elogin
 /+  default-agent, dbug, agentio
-/=  index  /app/squad/index
+/=  index  /app/elogin/index
 |%
 +$  versioned-state
   $%  state-0
@@ -34,10 +34,7 @@
   |^  ^-  (quip card _this)
   ?>  =(our.bol src.bol)
   =^  cards  state
-    ?+  mark  (on-poke:def mark vase)
-      %squad-do             (handle-action !<(act vase))
-      %handle-http-request  (handle-http !<([@ta inbound-request:eyre] vase))
-    ==
+    (handle-http !<([@ta inbound-request:eyre] vase))
   [cards this]
   ++  handle-http
     |=  [rid=@ta req=inbound-request:eyre]
@@ -248,156 +245,6 @@
         (index-redirect rid (crip "/squad#{(trip (~(got by kv-map) 'gid'))}"))
       ==
     ==
-  ++  handle-action
-    |=  =act
-    ^-  (quip card _state)
-    ?-  -.act
-        %new
-      =/  =gid  [our.bol (title-to-name title.act)]
-      =/  =squad  [title.act pub.act]
-      =/  acl=ppl  ?:(pub.act *ppl (~(put in *ppl) our.bol))
-      =/  =ppl  (~(put in *ppl) our.bol)
-      :_  %=  state
-            squads   (~(put by squads) gid squad)
-            acls     (~(put by acls) gid acl)
-            members  (~(put by members) gid ppl)
-          ==
-      :~  (fact:io squad-did+!>(`upd`[%init gid squad acl ppl]) ~[/local/all])
-      ==
-    ::
-        %del
-      ?>  =(our.bol host.gid.act)
-      :_  %=  state
-            squads   (~(del by squads) gid.act)
-            acls     (~(del by acls) gid.act)
-            members  (~(del by members) gid.act)
-          ==
-      :-  (fact:io squad-did+!>(`upd`[%del gid.act]) ~[/local/all])
-      (fact-kick:io /[name.gid.act] squad-did+!>(`upd`[%del gid.act]))
-    ::
-        %allow
-      ?>  =(our.bol host.gid.act)
-      ?<  =(our.bol ship.act)
-      =/  pub=?  pub:(~(got by squads) gid.act)
-      ?:  ?|  &(pub !(~(has ju acls) gid.act ship.act))
-              &(!pub (~(has ju acls) gid.act ship.act))
-          ==
-        `state
-      :_  state(acls (?:(pub ~(del ju acls) ~(put ju acls)) gid.act ship.act))
-      :~  %+  fact:io
-            squad-did+!>(`upd`[%allow gid.act ship.act])
-          ~[/local/all /[name.gid.act]]
-      ==
-    ::
-        %kick
-      ?>  =(our.bol host.gid.act)
-      ?<  =(our.bol ship.act)
-      =/  pub=?  pub:(~(got by squads) gid.act)
-      ?:  ?|  &(pub (~(has ju acls) gid.act ship.act))
-              &(!pub !(~(has ju acls) gid.act ship.act))
-          ==
-        `state
-      :_  %=  state
-            acls  (?:(pub ~(put ju acls) ~(del ju acls)) gid.act ship.act)
-            members  (~(del ju members) gid.act ship.act)
-          ==
-      :~  %+  fact:io
-            squad-did+!>(`upd`[%kick gid.act ship.act])
-          ~[/local/all /[name.gid.act]]
-          (kick-only:io ship.act ~[/[name.gid.act]])
-      ==
-    ::
-        %join
-      ?:  |(=(our.bol host.gid.act) (~(has by squads) gid.act))
-        `state
-      =/  =path  /[name.gid.act]
-      :_  state
-      :~  (~(watch pass:io path) [host.gid.act %squad] path)
-      ==
-    ::
-        %leave
-      ?<  =(our.bol host.gid.act)
-      ?>  (~(has by squads) gid.act)
-      =/  =path  /[name.gid.act]
-      :_  %=  state
-            squads   (~(del by squads) gid.act)
-            members  (~(del by members) gid.act)
-            acls     (~(del by acls) gid.act)
-          ==
-      :~  (~(leave-path pass:io path) [host.gid.act %squad] path)
-          (fact:io squad-did+!>(`upd`[%leave gid.act our.bol]) ~[/local/all])
-      ==
-    ::
-        %pub
-      ?>  =(our.bol host.gid.act)
-      =/  =squad  (~(got by squads) gid.act)
-      ?:  pub.squad  `state
-      :_  %=  state
-            squads  (~(put by squads) gid.act squad(pub &))
-            acls    (~(del by acls) gid.act)
-          ==
-      :~  %+  fact:io
-            squad-did+!>(`upd`[%pub gid.act])
-          ~[/local/all /[name.gid.act]]
-      ==
-    ::
-        %priv
-      ?>  =(our.bol host.gid.act)
-      =/  =squad  (~(got by squads) gid.act)
-      ?.  pub.squad  `state
-      =/  =ppl  (~(got by members) gid.act)
-      :_  %=  state
-            squads  (~(put by squads) gid.act squad(pub |))
-            acls    (~(put by acls) gid.act ppl)
-          ==
-      :~  %+  fact:io
-            squad-did+!>(`upd`[%priv gid.act])
-          ~[/local/all /[name.gid.act]]
-      ==
-    ::
-        %title
-      ?>  =(our.bol host.gid.act)
-      =/  =squad  (~(got by squads) gid.act)
-      ?:  =(title.squad title.act)
-        `state
-      :_  state(squads (~(put by squads) gid.act squad(title title.act)))
-      :~  %+  fact:io
-            squad-did+!>(`upd`[%title gid.act title.act])
-          ~[/local/all /[name.gid.act]]
-      ==
-    ==
-  ++  title-to-name
-    |=  =title
-    ^-  @tas
-    =/  new=tape
-      %+  scan
-        (cass (trip title))
-      %+  ifix
-        :-  (star ;~(less aln next))
-        (star next)
-      %-  star
-      ;~  pose
-        aln
-        ;~  less
-          ;~  plug
-            (plus ;~(less aln next))
-            ;~(less next (easy ~))
-          ==
-          (cold '-' (plus ;~(less aln next)))
-        ==
-      ==
-    =?  new  ?=(~ new)
-      "x"
-    =?  new  !((sane %tas) (crip new))
-      ['x' '-' new]
-    ?.  (~(has by squads) [our.bol (crip new)])
-      (crip new)
-    =/  num=@ud  1
-    |-
-    =/  =@tas  (crip "{new}-{(a-co:co num)}")
-    ?.  (~(has by squads) [our.bol tas])
-      tas
-    $(num +(num))
   ::
   ++  index-redirect
     |=  [rid=@ta path=@t]
@@ -425,6 +272,13 @@
   --
 ::
 ++  on-watch
+  |=  =path
+  ^-  (quip card _this)
+  ?+    path  (on-watch:def path)
+      [%http-response *]
+    `this
+  ==
+
   |=  =path
   |^  ^-  (quip card _this)
   ?:  &(=(our.bol src.bol) ?=([%http-response *] path))
